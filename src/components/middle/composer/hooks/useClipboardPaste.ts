@@ -50,28 +50,13 @@ const useClipboardPaste = (
         return;
       }
 
-      e.preventDefault();
-
       // Some extensions can trigger paste into their panels without focus
       if (document.activeElement !== input) {
         return;
       }
 
-      const pastedText = e.clipboardData.getData('text');
-      const html = e.clipboardData.getData('text/html');
-
-      let pastedFormattedText = html ? parseHtmlAsFormattedText(
-        preparePastedHtml(html), undefined, true,
-      ) : undefined;
-
-      if (pastedFormattedText && containsCustomEmoji(pastedFormattedText) && shouldStripCustomEmoji) {
-        pastedFormattedText = stripCustomEmoji(pastedFormattedText);
-        onCustomEmojiStripped?.();
-      }
-
       const { items } = e.clipboardData;
       let files: File[] | undefined = [];
-
       if (items.length > 0) {
         files = await getFilesFromDataTransferItems(items);
         if (editedMessage) {
@@ -79,12 +64,7 @@ const useClipboardPaste = (
         }
       }
 
-      if (!files?.length && !pastedText) {
-        return;
-      }
-
-      const textToPaste = pastedFormattedText?.entities?.length ? pastedFormattedText : { text: pastedText };
-
+      const html = e.clipboardData.getData('text/html');
       let isWordDocument = false;
       try {
         const parser = new DOMParser();
@@ -95,38 +75,55 @@ const useClipboardPaste = (
         // Ignore
       }
 
-      const hasText = textToPaste && textToPaste.text;
-      let shouldSetAttachments = files?.length && !isWordDocument;
+      // Only prevent default if we have files or special formatting to handle
+      if (files?.length || isWordDocument || html) {
+        e.preventDefault();
 
-      const newAttachments = files ? await Promise.all(files.map((file) => buildAttachment(file.name, file))) : [];
-      const canReplace = (editedMessage && newAttachments?.length
-        && canReplaceMessageMedia(editedMessage, newAttachments[0])) || Boolean(hasText);
-      const isUploadingDocumentSticker = isUploadingFileSticker(newAttachments[0]);
-      const isInAlbum = editedMessage && editedMessage?.groupedId;
+        const pastedText = e.clipboardData.getData('text');
+        let pastedFormattedText = html ? parseHtmlAsFormattedText(
+          preparePastedHtml(html), undefined, true,
+        ) : undefined;
 
-      if (editedMessage && isUploadingDocumentSticker) {
-        showNotification({ message: lang(isInAlbum ? 'lng_edit_media_album_error' : 'lng_edit_media_invalid_file') });
-        return;
-      }
+        if (pastedFormattedText && containsCustomEmoji(pastedFormattedText) && shouldStripCustomEmoji) {
+          pastedFormattedText = stripCustomEmoji(pastedFormattedText);
+          onCustomEmojiStripped?.();
+        }
 
-      if (isInAlbum) {
-        shouldSetAttachments = canReplace;
-        if (!shouldSetAttachments) {
-          showNotification({ message: lang('lng_edit_media_album_error') });
+        const textToPaste = pastedFormattedText?.entities?.length ? pastedFormattedText : { text: pastedText };
+        let shouldSetAttachments = files?.length && !isWordDocument;
+
+        const newAttachments = files ? await Promise.all(files.map((file) => buildAttachment(file.name, file))) : [];
+        const canReplace = (editedMessage && newAttachments?.length
+          && canReplaceMessageMedia(editedMessage, newAttachments[0])) || Boolean(textToPaste.text);
+        const isUploadingDocumentSticker = isUploadingFileSticker(newAttachments[0]);
+        const isInAlbum = editedMessage && editedMessage?.groupedId;
+
+        if (editedMessage && isUploadingDocumentSticker) {
+          showNotification({ message: lang(isInAlbum ? 'lng_edit_media_album_error' : 'lng_edit_media_invalid_file') });
           return;
         }
-      }
 
-      if (shouldSetAttachments) {
-        setAttachments(editedMessage ? newAttachments : (attachments) => attachments.concat(newAttachments));
-      }
-
-      if (hasText) {
-        if (shouldSetAttachments) {
-          setNextText(textToPaste);
-        } else {
-          insertTextAndUpdateCursor(textToPaste, input?.id);
+        if (isInAlbum) {
+          shouldSetAttachments = canReplace;
+          if (!shouldSetAttachments) {
+            showNotification({ message: lang('lng_edit_media_album_error') });
+            return;
+          }
         }
+
+        if (shouldSetAttachments) {
+          setAttachments(editedMessage ? newAttachments : (attachments) => attachments.concat(newAttachments));
+        }
+
+        if (textToPaste.text) {
+          if (shouldSetAttachments) {
+            setNextText(textToPaste);
+          } else {
+            document.execCommand('insertText', false, textToPaste.text);
+          }
+        }
+      } else {
+        document.execCommand('paste', false, '');
       }
     }
 
