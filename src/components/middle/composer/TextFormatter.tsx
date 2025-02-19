@@ -40,6 +40,7 @@ interface ISelectedTextFormats {
   strikethrough?: boolean;
   monospace?: boolean;
   spoiler?: boolean;
+  quote?: boolean;
 }
 
 const TEXT_FORMAT_BY_TAG_NAME: Record<string, keyof ISelectedTextFormats> = {
@@ -51,6 +52,7 @@ const TEXT_FORMAT_BY_TAG_NAME: Record<string, keyof ISelectedTextFormats> = {
   DEL: 'strikethrough',
   CODE: 'monospace',
   SPAN: 'spoiler',
+  BLOCKQUOTE: 'quote',
 };
 const fragmentEl = document.createElement('div');
 
@@ -127,6 +129,7 @@ const TextFormatter: FC<OwnProps> = ({
       selection.addRange(selectedRange);
     }
   });
+
 
   const updateSelectedRange = useLastCallback(() => {
     const selection = window.getSelection();
@@ -278,6 +281,7 @@ const TextFormatter: FC<OwnProps> = ({
         return;
       }
 
+
       element.replaceWith(element.textContent);
       setSelectedTextFormats((selectedFormats) => ({
         ...selectedFormats,
@@ -318,6 +322,35 @@ const TextFormatter: FC<OwnProps> = ({
     onClose();
   });
 
+  const handleQuoteText = useLastCallback(() => {
+    if (selectedTextFormats.quote) {
+      const element = getSelectedElement();
+      if (
+        !selectedRange
+        || !element
+        || element.tagName !== 'BLOCKQUOTE'
+        || !element.textContent
+      ) {
+        return;
+      }
+
+      element.replaceWith(element.textContent);
+      setSelectedTextFormats((selectedFormats) => ({
+        ...selectedFormats,
+        quote: false,
+      }));
+
+      return;
+    }
+
+    const text = getSelectedText(true);
+    if (!text) return;
+
+    // Insert the opening newline and blockquote tag
+    document.execCommand('insertHTML', false, `\n<blockquote class="text-entity-quote" dir="auto">${text}</blockquote>\n`,);
+    onClose();
+  });
+
   const handleLinkUrlConfirm = useLastCallback(() => {
     const formattedLinkUrl = (ensureProtocol(linkUrl) || '').split('%').map(encodeURI).join('%');
 
@@ -353,6 +386,7 @@ const TextFormatter: FC<OwnProps> = ({
       m: handleMonospaceText,
       s: handleStrikethroughText,
       p: handleSpoilerText,
+      "'": handleQuoteText, // Not use Q for quotes
     };
 
     const handler = HANDLERS_BY_KEY[getKeyFromEvent(e)];
@@ -405,6 +439,7 @@ const TextFormatter: FC<OwnProps> = ({
   const style = anchorPosition
     ? `left: ${anchorPosition.x}px; top: ${anchorPosition.y}px;--text-formatter-left: ${anchorPosition.x}px;`
     : '';
+
 
   return (
     <div
@@ -465,6 +500,14 @@ const TextFormatter: FC<OwnProps> = ({
         >
           <Icon name="monospace" />
         </Button>
+        <Button
+          color="translucent"
+          ariaLabel="Quote text"
+          className={getFormatButtonClassName('quote')}
+          onClick={handleQuoteText}
+        >
+          <Icon name="quote" />
+        </Button>
         <div className="TextFormatter-divider" />
         <Button color="translucent" ariaLabel={lang('TextFormat.AddLinkTitle')} onClick={openLinkControl}>
           <Icon name="link" />
@@ -513,3 +556,4 @@ const TextFormatter: FC<OwnProps> = ({
 };
 
 export default memo(TextFormatter);
+
