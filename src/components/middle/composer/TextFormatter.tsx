@@ -281,13 +281,29 @@ const TextFormatter: FC<OwnProps> = ({
         return;
       }
 
+      // Create a temporary div to hold the text
+      const tempDiv = document.createElement('div');
+      tempDiv.textContent = element.textContent;
+      
+      // Replace DEL with div first
+      element.replaceWith(tempDiv);
+      
+      // Then replace div with text node
+      const textNode = document.createTextNode(tempDiv.textContent || '');
+      tempDiv.replaceWith(textNode);
 
-      element.replaceWith(element.textContent);
+      // Force input event
+      const input = document.getElementById(EDITABLE_INPUT_ID);
+      if (input) {
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
       setSelectedTextFormats((selectedFormats) => ({
         ...selectedFormats,
         strikethrough: false,
       }));
 
+      onClose();
       return;
     }
 
@@ -308,12 +324,29 @@ const TextFormatter: FC<OwnProps> = ({
         return;
       }
 
-      element.replaceWith(element.textContent);
+      // Create a temporary div to hold the text
+      const tempDiv = document.createElement('div');
+      tempDiv.textContent = element.textContent;
+      
+      // Replace CODE with div first
+      element.replaceWith(tempDiv);
+      
+      // Then replace div with text node
+      const textNode = document.createTextNode(tempDiv.textContent || '');
+      tempDiv.replaceWith(textNode);
+
+      // Force input event
+      const input = document.getElementById(EDITABLE_INPUT_ID);
+      if (input) {
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
       setSelectedTextFormats((selectedFormats) => ({
         ...selectedFormats,
         monospace: false,
       }));
 
+      onClose();
       return;
     }
 
@@ -334,12 +367,41 @@ const TextFormatter: FC<OwnProps> = ({
         return;
       }
 
-      element.replaceWith(element.textContent);
+      // Remove the BR element before the blockquote if it exists
+      const previousElement = element.previousSibling;
+      if (previousElement && previousElement.nodeName === 'BR') {
+        previousElement.remove();
+      }
+
+      // Remove the BR element after the blockquote if it exists
+      const nextElement = element.nextSibling;
+      if (nextElement && nextElement.nodeName === 'BR') {
+        nextElement.remove();
+      }
+
+      // Create a temporary div to hold the text
+      const tempDiv = document.createElement('div');
+      tempDiv.textContent = element.textContent;
+      
+      // Replace blockquote with div first
+      element.replaceWith(tempDiv);
+      
+      // Then replace div with text node
+      const textNode = document.createTextNode(tempDiv.textContent || '');
+      tempDiv.replaceWith(textNode);
+
+      // Force input event
+      const input = document.getElementById(EDITABLE_INPUT_ID);
+      if (input) {
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
       setSelectedTextFormats((selectedFormats) => ({
         ...selectedFormats,
         quote: false,
       }));
 
+      onClose();
       return;
     }
 
@@ -556,4 +618,3 @@ const TextFormatter: FC<OwnProps> = ({
 };
 
 export default memo(TextFormatter);
-
