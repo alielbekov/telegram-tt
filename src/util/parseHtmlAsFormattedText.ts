@@ -22,7 +22,7 @@ export const ENTITY_CLASS_BY_NODE_NAME: Record<string, ApiMessageEntityTypes> = 
 const MAX_TAG_DEEPNESS = 3;
 
 export default function parseHtmlAsFormattedText(
-  html: string, withMarkdownLinks = false, skipMarkdown = false,
+  html: string, withMarkdownLinks = true, skipMarkdown = false,
 ): ApiFormattedText {
   const fragment = document.createElement('div');
   fragment.innerHTML = skipMarkdown ? html
@@ -160,6 +160,19 @@ function parseMarkdown(html: string) {
     `<span data-entity-type="${ApiMessageEntityTypes.Spoiler}">$2</span>`,
   );
 
+  // Blockquote - collect consecutive lines
+  parsedHtml = parsedHtml.replace(
+    /(?:^|\n)(?:&gt;[ ]?.*(?:\n|$))+/g,
+    (match) => {
+      const content = match
+        .split('\n')
+        .map(line => line.trim().replace(/^&gt;[ ]?/, ''))
+        .filter(Boolean)
+        .join('\n');
+      return `\n<blockquote class="text-entity-quote" dir="auto">${content}</blockquote>\n`;
+    }
+  );
+
   // Restore escaped characters
   parsedHtml = parsedHtml.replace(/\uE000(\d+)\uE001/g, (match, charCode) => {
     return String.fromCharCode(Number(charCode));
@@ -169,10 +182,27 @@ function parseMarkdown(html: string) {
 }
 
 function parseMarkdownLinks(html: string) {
-  return html.replace(new RegExp(`\\[([^\\]]+?)]\\((${RE_LINK_TEMPLATE}+?)\\)`, 'g'), (_, text, link) => {
-    const url = link.includes('://') ? link : link.includes('@') ? `mailto:${link}` : `https://${link}`;
-    return `<a href="${url}">${text}</a>`;
-  });
+  // Handle inline URLs with format [text](url)
+  return html.replace(
+    // Support both http(s) and non-protocol URLs
+    new RegExp(`\\[([^\\]]+?)]\\(((?:${RE_LINK_TEMPLATE}|[^\\s<>\\[\\]()]+?))\\)`, 'g'),
+    (_, text, link) => {
+      // Ensure proper URL formatting
+      const url = ensureProtocol(link);
+      // Escape any HTML in the text content
+      const safeText = text.replace(/[<>&"']/g, (char) => {
+        switch (char) {
+          case '<': return '&lt;';
+          case '>': return '&gt;';
+          case '&': return '&amp;';
+          case '"': return '&quot;';
+          case "'": return '&#39;';
+          default: return char;
+        }
+      });
+      return `<a href="${url}" data-entity-type="${ApiMessageEntityTypes.TextUrl}">${safeText}</a>`;
+    }
+  );
 }
 
 function getEntityDataFromNode(
@@ -294,4 +324,14 @@ function getEntityTypeFromNode(node: ChildNode): ApiMessageEntityTypes | undefin
   }
 
   return undefined;
+}
+
+function ensureProtocol(link: string) {
+  if (link.includes('://')) {
+    return link;
+  }
+  if (link.includes('@')) {
+    return `mailto:${link}`;
+  }
+  return `https://${link}`;
 }
