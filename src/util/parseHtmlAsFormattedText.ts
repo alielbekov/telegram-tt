@@ -82,6 +82,13 @@ function parseMarkdown(html: string) {
   // Strip redundant nbsp's
   parsedHtml = parsedHtml.replace(/&nbsp;/g, ' ');
 
+  // Handle escaped characters (should be processed before any other markdown)
+  // This handles any character with code between 1 and 126 and special markdown characters
+  parsedHtml = parsedHtml.replace(/\\([1-~]|[_*[\]()~`>#+=\-|{}.!])/g, (match, char) => {
+    // Store the ASCII code as a temporary placeholder to avoid it being processed as markdown
+    return `\uE000${char.charCodeAt(0)}\uE001`;
+  });
+
   // Replace <div><br></div> with newline (new line in Safari)
   parsedHtml = parsedHtml.replace(/<div><br([^>]*)?><\/div>/g, '\n');
   // Replace <br> with newline
@@ -113,23 +120,50 @@ function parseMarkdown(html: string) {
     '<img alt="$1" data-document-id="$2">',
   );
 
-  // Other simple markdown
+  // Bold
   parsedHtml = parsedHtml.replace(
     /(?!<(code|pre)[^<]*|<\/)[*]{2}([^*\n]+)[*]{2}(?![^<]*<\/(code|pre)>)/g,
     '<b>$2</b>',
   );
   parsedHtml = parsedHtml.replace(
+    /(?!<(code|pre)[^<]*|<\/)[*]([^*\n]+)[*](?![^<]*<\/(code|pre)>)/g,
+    '<b>$2</b>',
+  );
+
+  // Handle triple underscore with disambiguation
+  parsedHtml = parsedHtml.replace(
+    /(?!<(code|pre)[^<]*|<\/)[_]{3}([^_\n]+)[_]{3}[*]{2}[_](?![^<]*<\/(code|pre)>)/g,
+    '<i><u>$2</u></i><b></b>',
+  );
+
+  // Underline (handle before italic to ensure greedy matching)
+  parsedHtml = parsedHtml.replace(
     /(?!<(code|pre)[^<]*|<\/)[_]{2}([^_\n]+)[_]{2}(?![^<]*<\/(code|pre)>)/g,
+    '<u>$2</u>',
+  );
+
+  // Italic (single underscore)
+  parsedHtml = parsedHtml.replace(
+    /(?!<(code|pre)[^<]*|<\/)[_]([^_\n]+)[_](?![^<]*<\/(code|pre)>)/g,
     '<i>$2</i>',
   );
+
+  // Strikethrough (single tilde)
   parsedHtml = parsedHtml.replace(
-    /(?!<(code|pre)[^<]*|<\/)[~]{2}([^~\n]+)[~]{2}(?![^<]*<\/(code|pre)>)/g,
+    /(?!<(code|pre)[^<]*|<\/)[~]([^~\n]+)[~](?![^<]*<\/(code|pre)>)/g,
     '<s>$2</s>',
   );
+
+  // Spoiler
   parsedHtml = parsedHtml.replace(
     /(?!<(code|pre)[^<]*|<\/)[|]{2}([^|\n]+)[|]{2}(?![^<]*<\/(code|pre)>)/g,
     `<span data-entity-type="${ApiMessageEntityTypes.Spoiler}">$2</span>`,
   );
+
+  // Restore escaped characters
+  parsedHtml = parsedHtml.replace(/\uE000(\d+)\uE001/g, (match, charCode) => {
+    return String.fromCharCode(Number(charCode));
+  });
 
   return parsedHtml;
 }
