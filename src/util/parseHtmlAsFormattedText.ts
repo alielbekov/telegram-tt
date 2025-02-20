@@ -3,6 +3,7 @@ import { ApiMessageEntityTypes } from '../api/types';
 
 import { RE_LINK_TEMPLATE } from '../config';
 import { IS_EMOJI_SUPPORTED } from './windowEnvironment';
+import { parseMarkdown } from './markdown';
 
 export const ENTITY_CLASS_BY_NODE_NAME: Record<string, ApiMessageEntityTypes> = {
   B: ApiMessageEntityTypes.Bold,
@@ -76,7 +77,7 @@ export function fixImageContent(fragment: HTMLDivElement) {
   });
 }
 
-function parseMarkdown(html: string) {
+function parseMarkdownLegacy(html: string) {
   let parsedHtml = html.slice(0);
 
   // Strip redundant nbsp's
