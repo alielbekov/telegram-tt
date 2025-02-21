@@ -1,0 +1,102 @@
+.ChatFolders {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+
+  .StoryRibbon {
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .folders-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  &--vertical {
+    .folders-content-wrapper {
+      .folders-content {
+        display: flex;
+        flex-direction: row;
+        flex: 1;
+        min-height: 0;
+        position: relative;
+      }
+    }
+
+    .TabList {
+      width: 80px;
+      height: 100%;
+      flex-direction: column !important;
+      border-right: 1px solid var(--color-borders);
+      flex-shrink: 0;
+      background: var(--color-background);
+      z-index: 1;
+
+      .Tab {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 0.9em;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        
+        &.active {
+          background-color: var(--color-chat-active);
+        }
+
+        .folder-tab-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          gap: 0.25rem;
+
+          .folder-emoji {
+            font-size: 1.5rem;
+            line-height: 1;
+          }
+        }
+
+        .badge {
+          position: absolute;
+          top: 0;
+          right: 4px;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 4px;
+          border-radius: 9px;
+          background: var(--color-gray);
+          color: white;
+          font-size: 0.85em;
+          line-height: 18px;
+          text-align: center;
+          font-weight: 500;
+
+          &.Tab__badge--active {
+            background: var(--color-primary);
+          }
+        }
+      }
+    }
+
+    .ChatList-wrapper {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+    }
+
+    .Transition {
+      position: absolute !important;
+      left: 0 !important;
+      right: 0 !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      width: auto !important;
+    }
+  }
+}

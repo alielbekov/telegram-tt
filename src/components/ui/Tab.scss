@@ -12,6 +12,7 @@
   color: var(--color-text-secondary);
   border-top-left-radius: var(--border-radius-messages-small);
   border-top-right-radius: var(--border-radius-messages-small);
+  position: relative;
 
   &,
   &:active,
@@ -44,31 +45,37 @@
     }
   }
 
-  .Tab_inner {
-    position: relative;
+  &_inner {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    white-space: nowrap;
-    gap: 1px; // Prevent custom emoji sticking to the text
-  }
-
-  .badge {
-    min-width: 1.25rem;
-    height: 1.25rem;
-    margin-inline-start: 0.5rem;
-    background: var(--color-gray);
-    border-radius: 0.75rem;
-    padding: 0 0.3125rem;
-    color: white;
-    font-size: 0.875rem;
-    line-height: 1.3125rem;
-    font-weight: var(--font-weight-medium);
+    position: relative;
+    width: 100%;
     text-align: center;
-    flex-shrink: 0;
 
-    body.is-ios &,
-    body.is-macos & {
-      line-height: 1.25rem;
+    .icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .badge {
+      position: absolute;
+      top: -4px;
+      right: 4px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 4px;
+      border-radius: 9px;
+      background: var(--color-gray);
+      color: white;
+      font-size: 0.85em;
+      line-height: 18px;
+      text-align: center;
+      font-weight: 500;
+
+      &.Tab__badge--active {
+        background: var(--color-primary);
+      }
     }
   }
 

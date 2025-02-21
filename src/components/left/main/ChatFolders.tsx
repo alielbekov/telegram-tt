@@ -33,6 +33,8 @@ import TabList from '../../ui/TabList';
 import Transition from '../../ui/Transition';
 import ChatList from './ChatList';
 
+import './ChatFolders.scss';
+
 type OwnProps = {
   onSettingsScreenSelect: (screen: SettingsScreens) => void;
   foldersDispatch: FolderEditDispatch;
@@ -198,11 +200,16 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
 
       return {
         id,
-        title: renderTextWithEntities({
-          text: title.text,
-          entities: title.entities,
-          noCustomEmojiPlayback: folder.noTitleAnimations,
-        }),
+        title: (
+          <div className="folder-tab-content">
+            <span className="folder-emoji">{id === ALL_FOLDER_ID ? '💬' : '📁'}</span>
+            {renderTextWithEntities({
+              text: title.text,
+              entities: title.entities,
+              noCustomEmojiPlayback: folder.noTitleAnimations,
+            })}
+          </div>
+        ),
         badgeCount: folderCountersById[id]?.chatsCount,
         isBadgeActive: Boolean(folderCountersById[id]?.notificationsCount),
         isBlocked,
@@ -329,29 +336,34 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
       ref={ref}
       className={buildClassName(
         'ChatFolders',
+        'ChatFolders--vertical',
         shouldRenderFolders && shouldHideFolderTabs && 'ChatFolders--tabs-hidden',
         shouldRenderStoryRibbon && 'with-story-ribbon',
       )}
     >
       {shouldRenderStoryRibbon && <StoryRibbon isClosing={isStoryRibbonClosing} />}
-      {shouldRenderFolders ? (
-        <TabList
-          contextRootElementSelector="#LeftColumn"
-          tabs={folderTabs}
-          activeTab={activeChatFolder}
-          onSwitchTab={handleSwitchTab}
-        />
-      ) : shouldRenderPlaceholder ? (
-        <div ref={placeholderRef} className="tabs-placeholder" />
-      ) : undefined}
-      <Transition
-        ref={transitionRef}
-        name={shouldSkipHistoryAnimations ? 'none' : lang.isRtl ? 'slideOptimizedRtl' : 'slideOptimized'}
-        activeKey={activeChatFolder}
-        renderCount={shouldRenderFolders ? folderTabs.length : undefined}
-      >
-        {renderCurrentTab}
-      </Transition>
+      <div className="folders-content-wrapper">
+        <div className="folders-content">
+          {shouldRenderFolders && (
+            <TabList
+              contextRootElementSelector="#LeftColumn"
+              tabs={folderTabs}
+              activeTab={activeChatFolder}
+              onSwitchTab={handleSwitchTab}
+            />
+          )}
+          <div className="ChatList-wrapper">
+            <Transition
+              ref={transitionRef}
+              name={shouldSkipHistoryAnimations ? 'none' : lang.isRtl ? 'slideOptimizedRtl' : 'slideOptimized'}
+              activeKey={activeChatFolder}
+              renderCount={shouldRenderFolders ? folderTabs.length : undefined}
+            >
+              {renderCurrentTab}
+            </Transition>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

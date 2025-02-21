@@ -255,6 +255,8 @@ export interface ActionPayloads {
   };
   ensureTimeFormat: WithTabId | undefined;
 
+  setSettingFolderLayout: { layout: 'horizontal' | 'vertical' };
+
   // misc
   loadWebPagePreview: {
     text: ApiFormattedText;
@@ -301,7 +303,7 @@ export interface ActionPayloads {
     currentMediaMessageId: number;
     direction?: LoadMoreDirection;
     chatId?: string;
-    threadId? : ThreadId;
+    threadId?: ThreadId;
     limit?: number;
   } & WithTabId;
   searchMessagesByDate: {
@@ -1527,7 +1529,7 @@ export interface ActionPayloads {
     privacy: ApiPrivacySettings;
   };
   toggleStoriesHidden: {
-    peerId : string;
+    peerId: string;
     isHidden: boolean;
   };
   loadStoriesMaxIds: {
@@ -2127,7 +2129,7 @@ export interface ActionPayloads {
 
   requestCollectibleInfo: {
     peerId: string;
-    type : 'phone' | 'username';
+    type: 'phone' | 'username';
     collectible: string;
   } & WithTabId;
   closeCollectibleInfoModal: WithTabId | undefined;

@@ -203,3 +203,7 @@ addActionHandler('closeShareChatFolderModal', (global, actions, payload): Action
     shareFolderScreen: undefined,
   }, tabId);
 });
+
+addActionHandler('setSettingFolderLayout', (global, actions, payload: { layout: 'horizontal' | 'vertical' }) => {
+  return replaceSettings(global, { folderLayout: payload.layout });
+});
