@@ -56,14 +56,34 @@
           width: 100%;
           gap: 0.25rem;
 
+          .folder-icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+          }
+
+          .folder-title {
+            text-align: center;
+            width: 100%;
+            overflow-wrap: break-word;
+            word-break: break-word;
+          }
+
           .folder-emoji {
-            font-size: 1.5rem;
+            font-size: 2rem;
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-width: 1.5rem;
-            min-height: 1.5rem;
+            min-width: 2rem;
+            min-height: 2rem;
+
+            img {
+              width: 2rem;
+              height: 2rem;
+              object-fit: contain;
+            }
           }
         }
 

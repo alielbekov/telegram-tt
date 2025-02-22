@@ -34,6 +34,9 @@ import TabList from '../../ui/TabList';
 import Transition from '../../ui/Transition';
 import ChatList from './ChatList';
 
+import ChatsLogo from '../../../assets/icons/folder/chats.svg'
+import FolderLogo from '../../../assets/icons/folder/folder.svg'
+
 import './ChatFolders.scss';
 
 type OwnProps = {
@@ -215,30 +218,35 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         ? title.text.slice(0, -2) // Emoji characters are 2 bytes
         : title.text;
 
-      const folderEmoticon = id === ALL_FOLDER_ID ? '💬' : (
+      const folderEmoticon = id === ALL_FOLDER_ID ? (
+        <img src={ChatsLogo} className="folder-emoji" alt="" />
+      ) : (
         isLastEntityCustomEmoji
           ? undefined
-          : (emoticon || '📁')
+          : (emoticon ? <span className="folder-emoji">{emoticon}</span> : <img src={FolderLogo} className="folder-emoji" alt="" />)
       );
 
       return {
         id,
         title: (
           <div className="folder-tab-content">
-            {isLastEntityCustomEmoji ? (
-              <CustomEmoji
-                documentId={lastEntity.documentId}
-                className="folder-emoji"
-                isBig={true}
-              />
-            ) : (
-              <span className="folder-emoji">{folderEmoticon}</span>
-            )}
-            {renderTextWithEntities({
-              text: titleText,
-              entities: titleEntities,
-              noCustomEmojiPlayback: folder.noTitleAnimations,
-            })}
+            <div className="folder-icon-container">
+              {isLastEntityCustomEmoji ? (
+                <CustomEmoji
+                  documentId={lastEntity.documentId}
+                  className="folder-emoji custom-emoji"
+                  isBig={true}
+                  size={32}
+                />
+              ) : folderEmoticon}
+            </div>
+            <div className="folder-title">
+              {renderTextWithEntities({
+                text: titleText,
+                entities: titleEntities,
+                noCustomEmojiPlayback: folder.noTitleAnimations,
+              })}
+            </div>
           </div>
         ),
         badgeCount: folderCountersById[id]?.chatsCount,
