@@ -15,7 +15,6 @@ export class Tokenizer {
     this.withMarkdownLinks = withMarkdownLinks;
     this.start = 0;
     this.lastWasNewline = true; // Start as true to handle opening marks
-    console.log('Tokenizer input:', JSON.stringify(input));
   }
 
   private isAtEnd(): boolean {
@@ -53,7 +52,6 @@ export class Tokenizer {
       value: value || this.input.slice(this.start, this.position),
       position: this.start,
     };
-    console.log('Adding token:', JSON.stringify(token));
     this.tokens.push(token);
   }
 
@@ -95,13 +93,11 @@ export class Tokenizer {
     }
 
     this.addToken('EOF');
-    console.log('Final tokens:', JSON.stringify(this.tokens, null, 2));
     return this.tokens;
   }
 
   private scanToken(): void {
     const char = this.advance();
-    console.log('Scanning char:', JSON.stringify(char), 'lastWasNewline:', this.lastWasNewline);
 
     // If character is escaped, add it as text
     if (this.isEscaped()) {
@@ -146,7 +142,6 @@ export class Tokenizer {
         if (this.match('`')) {
           if (this.match('`')) {
             // We found three backticks. Check if we're at the start of a line for opening
-            console.log('Found triple backticks at position:', this.position, 'lastWasNewline:', this.lastWasNewline);
             // Always tokenize triple backticks, but mark them differently if they're at start of line
             this.addToken(this.lastWasNewline || this.tokens.length === 0 ? 'TRIPLE_BACKTICK' : 'TRIPLE_BACKTICK_INLINE');
           } else {
