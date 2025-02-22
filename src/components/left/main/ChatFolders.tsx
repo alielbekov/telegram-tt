@@ -4,7 +4,7 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
-import type { ApiChatFolder, ApiChatlistExportedInvite, ApiSession } from '../../../api/types';
+import { ApiMessageEntityTypes, type ApiChatFolder, type ApiChatlistExportedInvite, type ApiSession } from '../../../api/types';
 import type { GlobalState } from '../../../global/types';
 import type { FolderEditDispatch } from '../../../hooks/reducers/useFoldersReducer';
 import type { LeftColumnContent, SettingsScreens } from '../../../types';
@@ -20,6 +20,7 @@ import { captureEvents, SwipeDirection } from '../../../util/captureEvents';
 import { MEMO_EMPTY_ARRAY } from '../../../util/memo';
 import { IS_TOUCH_ENV } from '../../../util/windowEnvironment';
 import { renderTextWithEntities } from '../../common/helpers/renderTextWithEntities';
+import CustomEmoji from '../../common/CustomEmoji';
 
 import useDerivedState from '../../../hooks/useDerivedState';
 import { useFolderManagerForUnreadCounters } from '../../../hooks/useFolderManager';
@@ -198,14 +199,44 @@ const ChatFolders: FC<OwnProps & StateProps> = ({
         });
       }
 
+      const lastEntity = title.entities?.find((entity) => {
+        return entity.offset + entity.length === title.text.length;
+      });
+
+      const isLastEntityCustomEmoji = lastEntity?.type === ApiMessageEntityTypes.CustomEmoji;
+
+      // Remove the last entity from rendering if it's a custom emoji shown as icon
+      const titleEntities = isLastEntityCustomEmoji 
+        ? title.entities?.filter(entity => entity !== lastEntity)
+        : title.entities;
+
+      // Remove the emoji character from the end of the text if we're showing it as an icon
+      const titleText = isLastEntityCustomEmoji
+        ? title.text.slice(0, -2) // Emoji characters are 2 bytes
+        : title.text;
+
+      const folderEmoticon = id === ALL_FOLDER_ID ? '💬' : (
+        isLastEntityCustomEmoji
+          ? undefined
+          : (emoticon || '📁')
+      );
+
       return {
         id,
         title: (
           <div className="folder-tab-content">
-            <span className="folder-emoji">{id === ALL_FOLDER_ID ? '💬' : (emoticon || '📁')}</span>
+            {isLastEntityCustomEmoji ? (
+              <CustomEmoji
+                documentId={lastEntity.documentId}
+                className="folder-emoji"
+                isBig={true}
+              />
+            ) : (
+              <span className="folder-emoji">{folderEmoticon}</span>
+            )}
             {renderTextWithEntities({
-              text: title.text,
-              entities: title.entities,
+              text: titleText,
+              entities: titleEntities,
               noCustomEmojiPlayback: folder.noTitleAnimations,
             })}
           </div>
