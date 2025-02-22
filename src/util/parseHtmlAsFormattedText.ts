@@ -191,7 +191,7 @@ function parseMarkdownLinks(html: string) {
       // Ensure proper URL formatting
       const url = ensureProtocol(link);
       // Escape any HTML in the text content
-      const safeText = text.replace(/[<>&"']/g, (char) => {
+      const safeText = text.replace(/[<>&"']/g, (char: any) => {
         switch (char) {
           case '<': return '&lt;';
           case '>': return '&gt;';
