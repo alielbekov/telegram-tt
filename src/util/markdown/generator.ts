@@ -27,11 +27,11 @@ export class Generator {
 
       case 'code': {
         // Inline code
-        return `<code>${escapeHtml(node.value)}</code>`;
+        return `<code>${escapeHtml(node.value || "")}</code>`;
       }
 
       case 'pre': {
-        const { value, attributes } = node;
+        const { value = '', attributes } = node;
         const language = attributes?.language;
         
         // Three cases:
