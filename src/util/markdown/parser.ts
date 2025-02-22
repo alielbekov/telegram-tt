@@ -28,7 +28,6 @@ export class Parser {
   constructor(tokens: Token[]) {
     this.tokens = tokens;
     this.current = 0;
-    console.log('Parser initialized with tokens:', JSON.stringify(tokens, null, 2));
     this.activeMarkers = new Set();
   }
 
@@ -79,7 +78,6 @@ export class Parser {
 
     // Handle triple backtick code blocks
     if (this.match('TRIPLE_BACKTICK')) {
-      console.log('Found opening triple backtick token');
       let language = '';
       const codeContent: string[] = [];
       
@@ -100,7 +98,6 @@ export class Parser {
         }
       }
 
-      console.log('First line content:', JSON.stringify(firstLine));
       
       // If we have a first line and a newline after it, try to parse it as a language
       if (hasNewline && firstLine) {
@@ -126,14 +123,12 @@ export class Parser {
       let foundClosing = false;
       let lastWasNewline = false;
       while (!this.isAtEnd() && !foundClosing) {
-        console.log('Processing token:', JSON.stringify(this.peek()));
         const nextToken = this.peek();
         
         // Check for closing backticks
         if (nextToken.type === 'TRIPLE_BACKTICK' || nextToken.type === 'TRIPLE_BACKTICK_INLINE') {
           foundClosing = true;
           this.advance(); // Consume the closing backticks
-          console.log('Found closing triple backtick');
           break;
         }
         
@@ -148,15 +143,12 @@ export class Parser {
           } else {
             // For any other token, just get its value
             const token = this.advance();
-            console.log('Adding token value to content:', JSON.stringify(token));
             codeContent.push(token.value);
           }
         }
       }
 
       const content = codeContent.join('');
-      console.log('Final code block content:', JSON.stringify(content));
-      console.log('Language:', JSON.stringify(language));
 
       // If we found a proper closing
       if (foundClosing) {
@@ -167,8 +159,6 @@ export class Parser {
         };
       }
 
-      // If no proper closing was found, treat as text
-      console.log('No proper closing found, treating as text');
       return {
         type: 'text',
         value: '```' + (language ? language + '\n' : '') + content + '```',
